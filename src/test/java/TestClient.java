@@ -13,6 +13,7 @@ public class TestClient {
     private RangersClient rangersClient = null;
 
     public void analysisRequest(DSL dsl) throws Exception {
+        // 开放api统一使用 /openapi 前缀，headers、params 默认传null，若传空Map则code会返回 1403 错误
         String result = rangersClient.dataFinder("/openapi/v1/analysis", "post", null, null, JSON.toJSONString(dsl));
         System.out.println(result);
         JSONObject resultObject = JSON.parseObject(result);
@@ -33,6 +34,8 @@ public class TestClient {
     public void init() {
         if (rangersClient == null) {
             rangersClient = new RangersClient(ak, sk);
+            // 若私有化部署，则需要传产品私有化访问域名url
+//            rangersClient = new RangersClient(ak, sk,"产品私有化访问域名");
         }
     }
 
