@@ -58,7 +58,7 @@ public abstract class Client {
         }
     }
 
-    protected final String request(String service, String method, String path, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
+    public final String request(String service, String method, String path, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
         method = method.toUpperCase();
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
