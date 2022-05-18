@@ -58,7 +58,7 @@ public abstract class Client {
         }
     }
 
-    public final String request(String service, String method, String path, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
+    public final String request(String method, String serviceUrl, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
         method = method.toUpperCase();
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
@@ -66,14 +66,10 @@ public abstract class Client {
         if (Constants.POST.equals(method) && body == null) {
             throw new Client.ClientNotSupportException(Constants.POST_BODY_NULL);
         }
-        String servicePath = getServicePath(service);
-        if (servicePath == null) {
-            throw new Client.ClientNotSupportException(Constants.SERVICE_NOT_SUPPORT + ":" + service);
-        }
-        String serviceUrl = servicePath + path;
+
         String authorization = DslSign.sign(ak, sk, expiration, method, serviceUrl, params, body);
         if (headers == null) {
-            headers = new HashMap<String, String>();
+            headers = new HashMap<>();
         }
         headers.put(Constants.AUTHORIZATION, authorization);
         if (Constants.POST.equals(method)) {
@@ -81,6 +77,16 @@ public abstract class Client {
         }
         String url = this.url + serviceUrl;
         return Requests.requests(method, url, headers, body, params);
+    }
+
+    protected final String request(String service, String method, String path, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
+        String servicePath = getServicePath(service);
+        if (servicePath == null) {
+            throw new Client.ClientNotSupportException(Constants.SERVICE_NOT_SUPPORT + ":" + service);
+        }
+        String serviceUrl = servicePath + path;
+
+        return request(method, serviceUrl, headers, params, body);
     }
 
     public void setOrg(String org) {
