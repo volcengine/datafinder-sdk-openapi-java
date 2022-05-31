@@ -182,7 +182,7 @@ public class TestCommon {
                 .query(Expr.show("A", "查询A").sample(100)
                         .event("origin", "predefine_pageview", "pv")
                         .measureInfo("pct", "event_index", 100)
-                        .andFilter(Expr.stringExpr("referrer", "=", Arrays.asList("http://www.baidu.com", "http://www.bytedance.com"), "event_param")
+                        .andFilter(Expr.stringExpr("referrer", "=", Arrays.asList("http://www.baidu.com"), "event_param")
                                 .show("referer_label", "referer")
                         ))
                 .builder();

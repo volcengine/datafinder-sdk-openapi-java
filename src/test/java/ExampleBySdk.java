@@ -3,7 +3,6 @@ import com.datarangers.sdk.RangersClient;
 import java.util.HashMap;
 
 /**
- * @Author zhangpeng.spin@bytedance.com
  * @Date 2020-06-15
  */
 public class ExampleBySdk {

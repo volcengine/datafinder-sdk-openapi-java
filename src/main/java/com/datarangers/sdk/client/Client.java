@@ -4,7 +4,14 @@ import com.datarangers.sdk.common.Constants;
 import com.datarangers.sdk.requests.Requests;
 import com.datarangers.sdk.util.DslSign;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public abstract class Client {
     private String ak;
@@ -63,20 +70,45 @@ public abstract class Client {
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
         }
-        if (Constants.POST.equals(method) && body == null) {
-            throw new Client.ClientNotSupportException(Constants.POST_BODY_NULL);
-        }
 
         String authorization = DslSign.sign(ak, sk, expiration, method, serviceUrl, params, body);
         if (headers == null) {
             headers = new HashMap<>();
         }
         headers.put(Constants.AUTHORIZATION, authorization);
-        if (Constants.POST.equals(method)) {
+        if (Constants.POST.equals(method) && !headers.containsKey(Constants.CONTENT_TYPE)) {
             headers.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
         }
         String url = this.url + serviceUrl;
         return Requests.requests(method, url, headers, body, params);
+    }
+
+    public final String request(String method,
+                                String serviceUrl,
+                                HashMap<String, String> headers,
+                                HashMap<String, String> params,
+                                File file) throws Exception {
+        String boundary = UUID.randomUUID().toString();
+        if (headers == null) {
+            headers =  new HashMap<>();
+        }
+        headers.put(Constants.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
+
+        String contentType = new MimetypesFileTypeMap().getContentType(file);
+        if (contentType == null || "".equals(contentType)) {
+            contentType = "application/octet-stream";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n").append("--").append(boundary).append("\r\n");
+        sb.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"\r\n");
+        sb.append("Content-Type:" + contentType + "\r\n\r\n");
+        String fileContent = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
+                .lines().collect(Collectors.joining("\n"));
+        sb.append(fileContent);
+        sb.append("\r\n--" + boundary + "--\r\n");
+        String body = sb.toString();
+
+        return request(method, serviceUrl, headers, params, body);
     }
 
     protected final String request(String service, String method, String path, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
