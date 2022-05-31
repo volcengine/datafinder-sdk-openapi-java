@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -65,12 +67,14 @@ public abstract class Client {
         }
     }
 
-    public final String request(String method, String serviceUrl, HashMap<String, String> headers, HashMap<String, String> params, String body) throws Exception {
+    public final String request(String method, String serviceUrl, Map<String, String> headers, Map<String, String> params, String body) throws Exception {
         method = method.toUpperCase();
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
         }
-
+        if (params != null) {
+            params = new LinkedHashMap<>(params);
+        }
         String authorization = DslSign.sign(ak, sk, expiration, method, serviceUrl, params, body);
         if (headers == null) {
             headers = new HashMap<>();
@@ -83,7 +87,7 @@ public abstract class Client {
         return Requests.requests(method, url, headers, body, params);
     }
 
-    public final String request(String method,
+    public final String uploadFile(String method,
                                 String serviceUrl,
                                 HashMap<String, String> headers,
                                 HashMap<String, String> params,

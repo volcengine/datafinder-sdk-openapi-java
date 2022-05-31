@@ -12,6 +12,7 @@ public class ExampleBySdk {
         String ak = "xxx";
         String sk = "xxx";
         RangersClient rangersClient = new RangersClient(ak, sk);
+
         String res = rangersClient.dataRangers("/openapi/v1/xxx/date/2020-05-03/2020-05-09/downloads", "get");
         System.out.println(res);
     }
