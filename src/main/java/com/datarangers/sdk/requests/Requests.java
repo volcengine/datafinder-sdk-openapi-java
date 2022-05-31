@@ -7,35 +7,43 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 
 /***
  * 一些http请求方法
  */
 public class Requests {
-    public static String post(String url, HashMap<String, String> headers, HashMap<String, String> params, String body) {
+    public static String post(String url, Map<String, String> headers, Map<String, String> params, String body) {
+        HttpURLConnection connection = null;
         try {
             if (params != null) {
                 url += formatParams(params);
             }
             URL urls = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urls.openConnection();
-            connection.setRequestMethod("POST");//设置请求方式为POST
-            headers.forEach((k, v) -> {
-                connection.setRequestProperty(k, v);
-            });
-            connection.setDoOutput(true);//允许写出
-            connection.setDoInput(true);//允许读入
-            connection.setUseCaches(false);//不使用缓存
+            connection = (HttpURLConnection) urls.openConnection();
+            //设置请求方式为POST
+            connection.setRequestMethod("POST");
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+            //允许写出
+            connection.setDoOutput(true);
+            //允许读入
+            connection.setDoInput(true);
+            //不使用缓存
+            connection.setUseCaches(false);
             connection.connect();//连接
             if (body != null) {
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), "UTF-8"));
                 writer.write(body);
                 writer.close();
             }
-            int responseCode = connection.getResponseCode();
+            connection.getResponseCode();
             InputStream inputStream = connection.getInputStream();
-            String result = convertStreamToString(inputStream);//将流转换为字符串。
+            //将流转换为字符串
+            String result = convertStreamToString(inputStream);
             return result;
         } catch (ProtocolException e) {
             e.printStackTrace();
@@ -46,48 +54,64 @@ public class Requests {
         } catch (IOException e) {
             e.printStackTrace();
             return e.toString();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
     public static String get(String url) {
+        HttpURLConnection connection = null;
         try {
             URL urls = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urls.openConnection();
+            connection = (HttpURLConnection) urls.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
-            int responseCode = connection.getResponseCode();
+            connection.getResponseCode();
             InputStream inputStream = connection.getInputStream();
-            String result = convertStreamToString(inputStream);//将流转换为字符串。
+            //将流转换为字符串
+            String result = convertStreamToString(inputStream);
             return result;
         } catch (Exception e) {
             e.printStackTrace();
             return e.toString();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
-    public static String get(String url, HashMap<String, String> headers, HashMap<String, String> params) {
+    public static String get(String url, Map<String, String> headers, Map<String, String> params) {
+        HttpURLConnection connection = null;
         try {
             if (params != null) {
                 url += formatParams(params);
             }
             URL urls = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urls.openConnection();
+            connection = (HttpURLConnection) urls.openConnection();
             connection.setRequestMethod("GET");
-            headers.forEach((k, v) -> {
-                connection.setRequestProperty(k, v);
-            });
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
             connection.connect();
-            int responseCode = connection.getResponseCode();
+            connection.getResponseCode();
             InputStream inputStream = connection.getInputStream();
-            String result = convertStreamToString(inputStream);//将流转换为字符串。
+            //将流转换为字符串
+            String result = convertStreamToString(inputStream);
             return result;
         } catch (Exception e) {
             e.printStackTrace();
             return e.toString();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
-    private static String formatParams(HashMap<String, String> params) {
+    private static String formatParams(Map<String, String> params) {
         String param = "?";
         for (String key : params.keySet()) {
             param += key + "=" + params.get(key) + "&";
@@ -97,17 +121,17 @@ public class Requests {
 
 
     public static String convertStreamToString(InputStream inputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuffer sb = new StringBuffer();
-        String line = null;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
         while ((line = reader.readLine()) != null) {
-            sb.append(line + "\n");
+            sb.append(line + System.lineSeparator());
         }
-        String reponse = sb.toString();
-        return reponse;
+        String res = sb.toString();
+        return res;
     }
 
-    public static String requests(String method, String url, HashMap<String, String> headers, String body, HashMap<String, String> params) {
+    public static String requests(String method, String url, Map<String, String> headers, String body, Map<String, String> params) {
         if (Constants.POST.equals(method)) {
             return post(url, headers, params, body);
         } else if (Constants.GET.equals(method)) {
@@ -117,38 +141,49 @@ public class Requests {
     }
 
     /**
-     *  <LI>GET
-     *  <LI>POST
-     *  <LI>HEAD
-     *  <LI>OPTIONS
-     *  <LI>PUT
-     *  <LI>DELETE
-     *  <LI>TRACE
+     * <LI>GET
+     * <LI>POST
+     * <LI>HEAD
+     * <LI>OPTIONS
+     * <LI>PUT
+     * <LI>DELETE
+     * <LI>TRACE
      */
-    private static String call(String url, HashMap<String, String> headers, HashMap<String, String> params, String body, String method) {
+    private static String call(String url, Map<String, String> headers, Map<String, String> params, String body, String method) {
+        HttpURLConnection connection = null;
         try {
             if (params != null) {
                 url += formatParams(params);
             }
             URL urls = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urls.openConnection();
-            connection.setRequestMethod(method);//设置请求方式为POST
+            connection = (HttpURLConnection) urls.openConnection();
+            //设置请求方式为POST
+            connection.setRequestMethod(method);
             headers.forEach(connection::setRequestProperty);
-            connection.setDoOutput(true);//允许写出
-            connection.setDoInput(true);//允许读入
-            connection.setUseCaches(false);//不使用缓存
-            connection.connect();//连接
+            //允许写出
+            connection.setDoOutput(true);
+            //允许读入
+            connection.setDoInput(true);
+            //不使用缓存
+            connection.setUseCaches(false);
+            //连接
+            connection.connect();
             if (body != null) {
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), "UTF-8"));
                 writer.write(body);
                 writer.close();
             }
-            int responseCode = connection.getResponseCode();
+            connection.getResponseCode();
             InputStream inputStream = connection.getInputStream();
-            return convertStreamToString(inputStream);//将流转换为字符串。
+            //将流转换为字符串。
+            return convertStreamToString(inputStream);
         } catch (Exception e) {
             e.printStackTrace();
             return e.toString();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 }

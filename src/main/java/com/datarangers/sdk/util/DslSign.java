@@ -5,6 +5,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DslSign {
     private static String byteArrayToHexString(byte[] b) {
@@ -12,8 +14,9 @@ public class DslSign {
         String stmp;
         for (int n = 0; b != null && n < b.length; n++) {
             stmp = Integer.toHexString(b[n] & 0XFF);
-            if (stmp.length() == 1)
+            if (stmp.length() == 1) {
                 hs.append('0');
+            }
             hs.append(stmp);
         }
         return hs.toString().toLowerCase();
@@ -47,9 +50,11 @@ public class DslSign {
         return key + "=" + value;
     }
 
-    private static String canonicalParam(HashMap<String, String> params) {
+    private static String canonicalParam(Map<String, String> params) {
         String res = "CanonicalQueryString:";
-        if (params == null) return res;
+        if (params == null) {
+            return res;
+        }
         for (String key : params.keySet()) {
             res += formatKeyValue(key, params.get(key)) + "&";
         }
@@ -58,11 +63,14 @@ public class DslSign {
 
     private static String canonicalBody(String body) {
         String res = "CanonicalBody:";
-        if (body == null) return res;
-        else return res + body;
+        if (body == null) {
+            return res;
+        } else {
+            return res + body;
+        }
     }
 
-    private static String canonicalRequest(String method, String url, HashMap<String, String> params, String body) {
+    private static String canonicalRequest(String method, String url, Map<String, String> params, String body) {
         String cm = canonicalMethod(method);
         String cu = canonicalUrl(url);
         String cp = canonicalParam(params);
@@ -77,7 +85,7 @@ public class DslSign {
         return signKeyInfo + "/" + signResult;
     }
 
-    public static String sign(String ak, String sk, int expiration, String method, String url, HashMap<String, String> params, String body) {
+    public static String sign(String ak, String sk, int expiration, String method, String url, Map<String, String> params, String body) {
         String text = canonicalRequest(method, url, params, body);
         return doSign(ak, sk, expiration, text);
     }
