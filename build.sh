@@ -1,6 +1,6 @@
 #!/bin/sh
-
+set -x
 ./mvnw -DskipTests clean package -U assembly:single
 
-rm -rf release/javasdk.zip
-zip -j release/javasdk.zip target/javasdk-1.1.0.jar target/javasdk-1.1.0-jar-with-dependencies.jar README.md
+rm -rf release/*
+zip -j release/sdk-openapi-java.zip target/sdk-openapi-java-*.jar README.md

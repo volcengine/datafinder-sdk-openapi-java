@@ -19,5 +19,5 @@ public static void main(String[] args) throws Exception {
 <dependency>
     <groupId>com.alibaba</groupId>
     <artifactId>fastjson</artifactId>
-    <version>1.2.62</version>
+    <version>1.2.83</version>
 </dependency>
