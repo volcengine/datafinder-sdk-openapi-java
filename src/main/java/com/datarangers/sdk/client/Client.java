@@ -72,7 +72,7 @@ public abstract class Client {
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
         }
-        if (params != null) {
+        if (params != null && (!params.isEmpty())) {
             params = new LinkedHashMap<>(params);
         }
         String authorization = DslSign.sign(ak, sk, expiration, method, serviceUrl, params, body);

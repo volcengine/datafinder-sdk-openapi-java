@@ -52,7 +52,7 @@ public class DslSign {
 
     private static String canonicalParam(Map<String, String> params) {
         String res = "CanonicalQueryString:";
-        if (params == null) {
+        if (params == null || params.isEmpty()) {
             return res;
         }
         for (String key : params.keySet()) {

@@ -21,3 +21,31 @@ public static void main(String[] args) throws Exception {
     <artifactId>fastjson</artifactId>
     <version>1.2.83</version>
 </dependency>
+<dependency>
+    <groupId>com.squareup.okhttp3</groupId>
+    <artifactId>okhttp</artifactId>
+    <version>4.8.1</version>
+</dependency>
+```
+
+或者在pom中直接添加依赖：
+```xml
+<dependency>
+    <groupId>com.datarangers</groupId>
+    <artifactId>sdk-openapi-java</artifactId>
+    <version>{version}</version>
+</dependency>
+```
+{version} 为 `sdk-openapi-java`的版本。
+
+maven 仓库地址为：
+```xml
+<repositories>
+  <repository>
+    <id>bytedance-volcengine</id>
+    <name>bytedance Volcengine</name>
+    <url>https://artifact.bytedance.com/repository/Volcengine/</url>
+  </repository>
+</repositories>
+
+```
