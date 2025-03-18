@@ -3,12 +3,8 @@ package com.datarangers.sdk.requests;
 import com.datarangers.sdk.common.Constants;
 import okhttp3.*;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -138,4 +134,49 @@ public class Requests {
         }
     }
 
+    public static InputStream requestsStream(String method, String url, Map<String, String> headers, String body, Map<String, String> params) throws IOException {
+        if (params != null) {
+            url += formatParams(params);
+        }
+        if (Constants.GET.equals(method)) {
+            return requestGetStream(url, headers);
+        }
+        return requestMethodStream(method, url, headers, body);
+    }
+
+    private static InputStream requestGetStream(String url, Map<String, String> headers) throws IOException {
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(Headers.of(headers))
+                .build();
+        return getRequestStream(request);
+    }
+
+    private static InputStream requestMethodStream(String method, String url, Map<String, String> headers, String bodyContent) throws IOException {
+        RequestBody body = RequestBody.create(MediaType.parse("charset=utf-8"), bodyContent);
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(Headers.of(headers))
+                .method(method, body)
+                .build();
+        return getRequestStream(request);
+    }
+
+    private static InputStream getRequestStream(Request request) throws IOException {
+        OkHttpClient client = getHttpClient();
+        Response response = client.newCall(request).execute();
+
+        if (!response.isSuccessful()) {
+            response.close(); 
+            throw new IOException("Unexpected code " + response);
+        }
+
+        ResponseBody responseBody = response.body();
+        if (responseBody != null) {
+            return responseBody.byteStream();  
+        } else {
+            response.close();
+            return null;
+        }
+    }
 }
