@@ -9,14 +9,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.net.ssl.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 
 public class TestClient {
-    private String ak = "xxx";
-    private String sk = "xxx";
+    private String ak = System.getenv("AK");
+    private String sk = System.getenv("SK");
     private RangersClient rangersClient = null;
 
     public void analysisRequest(DSL dsl) throws Exception {
@@ -87,6 +90,24 @@ public class TestClient {
         Requests.init(okHttpClient);
         String result = rangersClient.dataRangers("/openapi/v1/xxx/date/2020-02-20/2020-02-23/downloads", "get");
         System.out.println(result);
+    }
+
+    @Test
+    public void testStreamDownload() throws Exception {
+        int appId = Integer.parseInt(System.getenv("APP_ID"));
+        int cohortId = Integer.parseInt(System.getenv("COHORT_ID"));
+        String serviceUrl = String.format("/datafinder/openapi/v1/%d/cohorts/%d/download", appId, cohortId);
+        // 获取 InputStream 并使用, 用完后关闭, 否则会导致连接泄漏， 使用 try-with-resources 自动关闭，或者在finnally中关闭
+        try (InputStream inputStream = rangersClient.requestStream("GET", serviceUrl, null, null, null)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

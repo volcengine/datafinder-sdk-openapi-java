@@ -5,10 +5,7 @@ import com.datarangers.sdk.requests.Requests;
 import com.datarangers.sdk.util.DslSign;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,24 +64,39 @@ public abstract class Client {
         }
     }
 
-    public final String request(String method, String serviceUrl, Map<String, String> headers, Map<String, String> params, String body) throws Exception {
+    private String prepareRequest(String method, String serviceUrl, Map<String, String> headers, Map<String, String> params, String body) throws Exception {
         method = method.toUpperCase();
         if (!Constants.METHOD_ALLODED.contains(method)) {
             throw new Client.ClientNotSupportException(Constants.METHOD_NOT_SUPPORT + ":" + method);
         }
-        if (params != null && (!params.isEmpty())) {
-            params = new LinkedHashMap<>(params);
-        }
         String authorization = DslSign.sign(ak, sk, expiration, method, serviceUrl, params, body);
-        if (headers == null) {
-            headers = new HashMap<>();
-        }
         headers.put(Constants.AUTHORIZATION, authorization);
         if (Constants.POST.equals(method) && !headers.containsKey(Constants.CONTENT_TYPE)) {
             headers.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
         }
-        String url = this.url + serviceUrl;
+        return this.url + serviceUrl;
+    }
+
+    public final String request(String method, String serviceUrl, Map<String, String> headers, Map<String, String> params, String body) throws Exception {
+        if (params != null && (!params.isEmpty())) {
+            params = new LinkedHashMap<>(params);
+        }
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        String url = prepareRequest(method, serviceUrl, headers, params, body);
         return Requests.requests(method, url, headers, body, params);
+    }
+
+    public final InputStream requestStream(String method, String serviceUrl, Map<String, String> headers, Map<String, String> params, String body) throws Exception {
+        if (params != null && (!params.isEmpty())) {
+            params = new LinkedHashMap<>(params);
+        }
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        String url = prepareRequest(method, serviceUrl, headers, params, body);
+        return Requests.requestsStream(method, url, headers, body, params);
     }
 
     public final String uploadFile(String method,
