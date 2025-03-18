@@ -2,9 +2,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.datarangers.sdk.DSL;
 import com.datarangers.sdk.RangersClient;
+import com.datarangers.sdk.requests.Requests;
+import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.net.ssl.*;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 
 public class TestClient {
@@ -76,7 +83,42 @@ public class TestClient {
 
     @Test
     public void testRangersOpenAPI() throws Exception {
+        OkHttpClient okHttpClient = createHttpClient();
+        Requests.init(okHttpClient);
         String result = rangersClient.dataRangers("/openapi/v1/xxx/date/2020-02-20/2020-02-23/downloads", "get");
         System.out.println(result);
+    }
+
+
+    private OkHttpClient createHttpClient() {
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            X509TrustManager tm = new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType)
+                        throws CertificateException {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType)
+                        throws CertificateException {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            };
+            sslContext.init((KeyManager[]) null, new TrustManager[]{tm}, (SecureRandom) null);
+            SSLSocketFactory  sslSocketFactory = sslContext.getSocketFactory();
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, tm)
+                    .build();
+            return okHttpClient;
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+            throw new RuntimeException("init ssl error", e);
+        }
     }
 }
