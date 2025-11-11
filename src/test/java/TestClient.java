@@ -94,6 +94,31 @@ public class TestClient {
 
     @Test
     public void testStreamDownload() throws Exception {
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(300, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(300, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(300, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+        Requests.init(okHttpClient);
+        int appId = Integer.parseInt(System.getenv("APP_ID"));
+        int cohortId = Integer.parseInt(System.getenv("COHORT_ID"));
+        String serviceUrl = String.format("/datafinder/openapi/v1/%d/cohorts/%d/download", appId, cohortId);
+        // 获取 InputStream 并使用, 用完后关闭, 否则会导致连接泄漏， 使用 try-with-resources 自动关闭，或者在finnally中关闭
+        try (InputStream inputStream = rangersClient.requestStream("GET", serviceUrl, null, null, null)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testStreamDownload2() throws Exception {
+        Requests.initTimeout(120l);
         int appId = Integer.parseInt(System.getenv("APP_ID"));
         int cohortId = Integer.parseInt(System.getenv("COHORT_ID"));
         String serviceUrl = String.format("/datafinder/openapi/v1/%d/cohorts/%d/download", appId, cohortId);
@@ -135,6 +160,7 @@ public class TestClient {
             SSLSocketFactory  sslSocketFactory = sslContext.getSocketFactory();
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
                     .sslSocketFactory(sslSocketFactory, tm)
+
                     .build();
             return okHttpClient;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {

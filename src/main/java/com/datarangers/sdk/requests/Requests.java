@@ -13,6 +13,7 @@ import java.util.Map;
  */
 public class Requests {
     private static final Object LOCK = new Object();
+    private static final long DEFAULT_TIMEOUT = 60L;
     private static volatile OkHttpClient okHttpClient;
 
     public static void init(OkHttpClient okHttpClient) {
@@ -22,11 +23,29 @@ public class Requests {
         Requests.okHttpClient = okHttpClient;
     }
 
-    private static OkHttpClient getHttpClient() {
+    /**
+     * 设置超时时间，必须选设置
+     * @param timeout
+     */
+    public static void initTimeout(long timeout) {
+        // 初始化
+        getHttpClient(timeout);
+    }
+
+    private static OkHttpClient getHttpClient(){
+        return getHttpClient(DEFAULT_TIMEOUT);
+    }
+
+    private static OkHttpClient getHttpClient(long timeout) {
         if (okHttpClient == null) {
             synchronized (LOCK) {
                 if (okHttpClient == null) {
-                    okHttpClient = new OkHttpClient();
+                    okHttpClient = new OkHttpClient.Builder()
+                            .connectTimeout(timeout, java.util.concurrent.TimeUnit.SECONDS)
+                            .readTimeout(timeout, java.util.concurrent.TimeUnit.SECONDS)
+                            .writeTimeout(timeout, java.util.concurrent.TimeUnit.SECONDS)
+                            .build();
+
                 }
             }
         }
