@@ -49,3 +49,12 @@ maven 仓库地址为：
 </repositories>
 
 ```
+
+## LICENSE
+see [LICENSE](LICENSE)
+
+
+## Security and privacy
+This project takes security seriously.
+For vulnerability reporting and supported versions, see [SECURITY.md](SECURITY.md)
+
