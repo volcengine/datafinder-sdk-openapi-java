@@ -118,8 +118,10 @@ public abstract class Client {
         sb.append("\r\n").append("--").append(boundary).append("\r\n");
         sb.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"\r\n");
         sb.append("Content-Type:" + contentType + "\r\n\r\n");
-        String fileContent = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
-                .lines().collect(Collectors.joining("\n"));
+        String fileContent;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+            fileContent = reader.lines().collect(Collectors.joining("\n"));
+        }
         sb.append(fileContent);
         sb.append("\r\n--" + boundary + "--\r\n");
         String body = sb.toString();
